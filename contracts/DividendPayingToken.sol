@@ -66,7 +66,7 @@ contract DividendPayingToken is ERC20, DividendPayingTokenInterface, DividendPay
   ///     but keeping track of such data on-chain costs much more than
   ///     the saved ether, so we don't do that.
   function distributeDividends() public override payable {
-    require(totalSupply() > 0);
+    require(totalSupply() > 0, "Total supply is zero");
 
     if (msg.value > 0) {
       magnifiedDividendPerShare = magnifiedDividendPerShare.add(

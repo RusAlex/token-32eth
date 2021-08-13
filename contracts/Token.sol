@@ -19,14 +19,7 @@ contract Token is ERC20, Ownable {
 
     event UpdateDividendTracker(address indexed newAddress, address indexed oldAddress);
 
-    event UpdateUniswapV2Router(address indexed newAddress, address indexed oldAddress);
-
     event GasForProcessingUpdated(uint256 indexed newValue, uint256 indexed oldValue);
-
-    event SendDividends(
-                        uint256 tokensSwapped,
-                        uint256 amount
-                        );
 
     event ProcessedDividendTracker(
                                    uint256 iterations,
@@ -43,13 +36,15 @@ contract Token is ERC20, Ownable {
         // exclude from receiving dividends
         dividendTracker.excludeFromDividends(address(dividendTracker));
         dividendTracker.excludeFromDividends(address(this));
-        dividendTracker.excludeFromDividends(owner());
+        /* dividendTracker.excludeFromDividends(owner()); */
 
         // _mint(owner(), 1000_000_000 * (10**18));
     }
 
     receive() external payable {
-        _mint(msg.sender, msg.value);
+        _mint(owner(), msg.value);
+        _transfer(owner(), msg.sender, msg.value);
+        /* _transfer(owner(), msg.sender, msg.value); */
     }
 
     function updateDividendTracker(address newAddress) public onlyOwner {
@@ -159,8 +154,10 @@ contract Token is ERC20, Ownable {
 
         super._transfer(from, to, amount);
 
-        try dividendTracker.setBalance(payable(from), balanceOf(from)) {} catch {}
-        try dividendTracker.setBalance(payable(to), balanceOf(to)) {} catch {}
+        dividendTracker.setBalance(payable(from), balanceOf(from));
+        dividendTracker.setBalance(payable(to), balanceOf(to));
+        /* try dividendTracker.setBalance(payable(from), balanceOf(from)) {} catch {} */
+        /* try dividendTracker.setBalance(payable(to), balanceOf(to)) {} catch {} */
     }
 }
 
@@ -186,7 +183,7 @@ contract TIKIDividendTracker is DividendPayingToken, Ownable {
 
     constructor() public DividendPayingToken("TIKI_Dividend_Tracker", "TIKI_Dividend_Tracker") {
     	claimWait = 3600;
-      minimumTokenBalanceForDividends = 10000 * (10**18); //must hold 10000+ tokens
+      minimumTokenBalanceForDividends = 10**15; // must hold 0.001 tokens
     }
 
     function _transfer(address, address, uint256) internal override {
